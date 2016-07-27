@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'', include('tracpro.msgs.urls')),
     url(r'', include('tracpro.polls.urls')),
     url(r'', include('tracpro.profiles.urls')),
+    url(r'', include('tracpro.trackers.urls')),
     url(r'^manage/', include('tracpro.orgs_ext.urls')),
     url(r'^users/', include('dash.users.urls')),
     url(r'^i18n/', include('django.conf.urls.i18n')),

@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'tracpro.orgs_ext',
     'tracpro.polls',
     'tracpro.profiles',
+    'tracpro.trackers',
 ]
 
 LANGUAGE_CODE = 'en'
@@ -282,6 +283,7 @@ GROUP_PERMISSIONS = {
         'polls.pollrun.*',
         'polls.response.*',
         'profiles.profile.*',
+        'trackers.tracker.*',
     ),
     "Editors": (
         'baseline.baselineterm.*',
