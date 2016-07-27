@@ -22,7 +22,8 @@ class TrackerCRUDL(SmartCRUDL):
 
         def get_context_data(self, **kwargs):
             context = super(TrackerCRUDL.Create, self).get_context_data(**kwargs)
-            context['group_rule_formset'] = GroupRuleFormSet()
+            data = {'form-TOTAL_FORMS': '1', 'form-INITIAL_FORMS': '0'}
+            context['group_rule_formset'] = GroupRuleFormSet(data)
             return context
 
         def post(self, request, *args, **kwargs):
