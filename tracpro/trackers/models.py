@@ -64,4 +64,4 @@ class GroupRule(models.Model):
     tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='group_rules')
 
     def __str__(self):
-        return self.region
+        return self.region.name

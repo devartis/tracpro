@@ -9,7 +9,7 @@ from .models import GroupRule
 class GroupRuleForm(forms.ModelForm):
     class Meta:
         model = GroupRule
-        fields = ('action', 'region', 'condition', 'threshold')
+        fields = ('id', 'action', 'region', 'condition', 'threshold')
 
 
-GroupRuleFormSet = modelformset_factory(GroupRule, GroupRuleForm)
+GroupRuleFormSet = modelformset_factory(GroupRule, GroupRuleForm, can_delete=True)
