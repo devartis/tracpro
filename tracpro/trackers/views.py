@@ -20,13 +20,17 @@ class TrackerCRUDL(SmartCRUDL):
         title = _("Tracker configuration")
         success_message = _("Your new tracker and group rules have been updated")
 
+        def dispatch(self, *args, **kwargs):
+            self.object = self.get_object()
+            self.form = self.get_form()
+            return super(TrackerCRUDL.Update, self).dispatch(*args, **kwargs)
+
         def get_context_data(self, **kwargs):
             context = super(TrackerCRUDL.Update, self).get_context_data(**kwargs)
             context['group_rule_formset'] = GroupRuleFormSet(queryset=context['tracker'].group_rules.all())
             return context
 
         def post(self, request, *args, **kwargs):
-            self.object = self.get_object()
             form = self.get_form_class()(request.POST, instance=self.object)
             group_rule_formset = GroupRuleFormSet(request.POST, queryset=self.object.group_rules.all())
             if form.is_valid() and group_rule_formset.is_valid():
@@ -54,6 +58,11 @@ class TrackerCRUDL(SmartCRUDL):
         title = _("Tracker configuration")
         success_message = _("Your new tracker and group rules have been created")
 
+        def dispatch(self, *args, **kwargs):
+            self.object = None
+            self.form = self.get_form()
+            return super(TrackerCRUDL.Create, self).dispatch(*args, **kwargs)
+
         def get_context_data(self, **kwargs):
             context = super(TrackerCRUDL.Create, self).get_context_data(**kwargs)
             data = {'form-TOTAL_FORMS': '1', 'form-INITIAL_FORMS': '0'}
@@ -73,8 +82,8 @@ class TrackerCRUDL(SmartCRUDL):
 
         def form_valid(self, form, group_rule_formset):
             self.object = form.save()
-            for group_rule_form in group_rule_formset:
-                group_rule = group_rule_form.save(commit=False)
+            group_rule_formset.save(commit=False)
+            for group_rule in group_rule_formset.new_objects:
                 group_rule.tracker = self.object
                 group_rule.save()
 

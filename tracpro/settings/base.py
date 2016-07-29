@@ -346,6 +346,7 @@ PERMISSIONS = {
     'polls.response': ('by_pollrun', 'by_contact'),
     # can't create profiles.user.* permissions because we don't own User
     'profiles.profile': ('user_create', 'user_read', 'user_update', 'user_list'),
+    'trackers.tracker': ('create', 'update', 'list'),
 }
 
 RTL_LANGUAGES = ['ps', 'fa']

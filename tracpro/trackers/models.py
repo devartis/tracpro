@@ -29,16 +29,18 @@ class Tracker(models.Model):
     minimum_group_threshold = models.IntegerField()
     target_group_threshold = models.IntegerField()
     maximum_group_threshold = models.IntegerField()
+    group_threshold_emails = models.TextField()
     minimum_contact_threshold = models.IntegerField()
     target_contact_threshold = models.IntegerField()
     maximum_contact_threshold = models.IntegerField()
+    contact_threshold_emails = models.TextField()
     emails = models.TextField()
 
     def __str__(self):
-        return self.contact_field.field.label
+        return self.contact_field.label
 
     def __unicode__(self):
-        return self.contact_field.field.label
+        return self.contact_field.label
 
 
 @python_2_unicode_compatible
