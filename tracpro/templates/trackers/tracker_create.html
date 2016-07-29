@@ -3,50 +3,27 @@
 {% load smartmin i18n %}
 {% load static %}
 
-{% block extra-fields %}
-    {{ group_rule_formset.management_form }}
+{% block fields %}
+    <fieldset>
+        <table>
+            {{ form.as_table }}
+        </table>
+        <br>
+        <br>
+        {{ group_rule_formset.management_form }}
 
-    {% for group_rule_form in group_rule_formset %}
-        <div class="group_rule-formset">
-            Action
-            {{ group_rule_form.action }}
-            {% if group_rule_form.action.errors %}
-                {% for error in group_rule_form.action.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-            {% endif %}
-
-            Region
-            {{ group_rule_form.region }}
-            {% if group_rule_form.region.errors %}
-                {% for error in group_rule_form.region.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-            {% endif %}
-
-            Condition
-            {{ group_rule_form.condition }}
-            {% if group_rule_form.condition.errors %}
-                {% for error in group_rule_form.condition.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-            {% endif %}
-
-            Threshold
-            {{ group_rule_form.threshold }}
-            {% if group_rule_form.threshold.errors %}
-                {% for error in group_rule_form.threshold.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-            {% endif %}
-        </div>
-    {% endfor %}
-
-    {% if group_rule_formset.non_form_errors %}
-        {% for error in group_rule_formset.non_form_errors %}
-            {{ error|escape }}
+        {% for group_rule_form in group_rule_formset %}
+            <div class="group_rule-formset">
+                {{ group_rule_form.as_p }}
+            </div>
         {% endfor %}
-    {% endif %}
+
+        {% if group_rule_formset.non_form_errors %}
+            {% for error in group_rule_formset.non_form_errors %}
+                {{ error|escape }}
+            {% endfor %}
+        {% endif %}
+    </fieldset>
 {% endblock %}
 
 

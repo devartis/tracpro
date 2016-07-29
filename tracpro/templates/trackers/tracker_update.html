@@ -1,23 +1,29 @@
-{% extends "smartmin/create.html" %}
+{% extends "smartmin/update.html" %}
 
 {% load smartmin i18n %}
 {% load static %}
 
-{% block extra-fields %}
-    {{ group_rule_formset.management_form }}
+{% block fields %}
+    <fieldset>
+        <table>
+            {{ form.as_table }}
+        </table>
+        <br>
+        <br>
+        {{ group_rule_formset.management_form }}
 
-    {% for group_rule_form in group_rule_formset %}
-        <div class="group_rule-formset">
-            Action
-            {{ group_rule_form.as_p }}
-        </div>
-    {% endfor %}
-
-    {% if group_rule_formset.non_form_errors %}
-        {% for error in group_rule_formset.non_form_errors %}
-            {{ error|escape }}
+        {% for group_rule_form in group_rule_formset %}
+            <div class="group_rule-formset">
+                {{ group_rule_form.as_p }}
+            </div>
         {% endfor %}
-    {% endif %}
+
+        {% if group_rule_formset.non_form_errors %}
+            {% for error in group_rule_formset.non_form_errors %}
+                {{ error|escape }}
+            {% endfor %}
+        {% endif %}
+    </fieldset>
 {% endblock %}
 
 
