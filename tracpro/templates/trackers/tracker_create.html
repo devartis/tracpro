@@ -1,39 +1,13 @@
 {% extends "smartmin/create.html" %}
-
-{% load smartmin i18n %}
 {% load static %}
 
 {% block fields %}
-    <fieldset>
-        <table>
-            {{ form.as_table }}
-        </table>
-        <br>
-        <br>
-        {{ group_rule_formset.management_form }}
-
-        {% for group_rule_form in group_rule_formset %}
-            <div class="group_rule-formset">
-                {{ group_rule_form.as_p }}
-            </div>
-        {% endfor %}
-
-        {% if group_rule_formset.non_form_errors %}
-            {% for error in group_rule_formset.non_form_errors %}
-                {{ error|escape }}
-            {% endfor %}
-        {% endif %}
-    </fieldset>
+    {% include "trackers/tracker_fields.html" %}
 {% endblock %}
 
 
 {% block extra-script %}
     {{ block.super }}
     <script src="{% static 'js/jquery.formset.js' %}"></script>
-    <script>
-        $('.group_rule-formset').formset({
-            addText: '+ add another group rule',
-            deleteText: 'X'
-        });
-    </script>
+    <script src="{% static 'js/trackers.js' %}"></script>
 {% endblock %}
