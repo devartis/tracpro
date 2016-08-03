@@ -50,8 +50,8 @@ class GroupRule(models.Model):
         ('remove', _('Remove'))
     )
     CONDITION_CHOICES = (
-        ('greater', _('Greater')),
-        ('less', _('Less'))
+        ('gt', _('Greater')),
+        ('lt', _('Less'))
     )
     THRESHOLD_CHOICES = (
         ('GMax', _('Group Maximum')),
@@ -67,3 +67,22 @@ class GroupRule(models.Model):
 
     def __str__(self):
         return self.region.name
+
+    def get_threshold_value(self):
+        threshold_mapper = {
+            'GMax': 'maximum_group_threshold',
+            'GMin': 'minimum_group_threshold',
+            'CMax': 'maximum_contact_threshold',
+            'CMin': 'minimum_contact_threshold',
+        }
+        return getattr(self.tracker, threshold_mapper[self.threshold])
+
+
+@python_2_unicode_compatible
+class Snapshot(models.Model):
+    contact_field = models.ForeignKey('contacts.ContactField', verbose_name=_("ContactField"), related_name='snapshots')
+    contact_field_value = models.CharField(max_length=255, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s: %s (%s)' % (self.contact_field.field.label, self.contact_field_value, self.timestamp)
