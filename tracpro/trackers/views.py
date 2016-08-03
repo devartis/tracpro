@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from smartmin.views import SmartCRUDL, SmartListView, SmartCreateView, SmartUpdateView
 
-from .forms import GroupRuleFormSet
+from .forms import GroupRuleFormSet, TrackerForm
 from .models import Tracker, GroupRule
 
 
@@ -19,6 +19,7 @@ class TrackerCRUDL(SmartCRUDL):
     class Update(OrgPermsMixin, SmartUpdateView):
         title = _("Tracker configuration")
         success_message = _("Your new tracker and group rules have been updated")
+        form_class = TrackerForm
 
         def dispatch(self, *args, **kwargs):
             self.object = self.get_object()
@@ -58,6 +59,7 @@ class TrackerCRUDL(SmartCRUDL):
     class Create(OrgPermsMixin, SmartCreateView):
         title = _("Tracker configuration")
         success_message = _("Your new tracker and group rules have been created")
+        form_class = TrackerForm
 
         def dispatch(self, *args, **kwargs):
             self.object = None
