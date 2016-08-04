@@ -4,6 +4,7 @@ import datetime
 import os
 
 import djcelery
+from celery.schedules import crontab
 
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
@@ -259,6 +260,20 @@ CELERYBEAT_SCHEDULE = {
     'sync-boundaries': _org_scheduler_task('tracpro.groups.tasks.SyncOrgBoundaries'),
     'fetch-runs': _org_scheduler_task('tracpro.polls.tasks.FetchOrgRuns'),
     'fetch-inbox-messages': _org_scheduler_task('tracpro.msgs.tasks.FetchOrgInboxMessages'),
+    'snapshots': {  # Executes every day at 2:00 A.M
+        'task': 'tracpro.orgs_ext.tasks.ScheduleTaskForActiveOrgs',
+        'schedule': crontab(hour=2, minute=0),
+        'kwargs': {
+            'task_name': 'tracpro.trackers.tasks.CreateSnapshots',
+        },
+    },
+    'apply-group-rules': {  # Executes every day at 8:00 A.M
+        'task': 'tracpro.orgs_ext.tasks.ScheduleTaskForActiveOrgs',
+        'schedule': crontab(hour=8, minute=0),
+        'kwargs': {
+            'task_name': 'tracpro.trackers.tasks.ApplyGroupRules',
+        },
+    },
 }
 
 COMPRESS_PRECOMPILERS = (
