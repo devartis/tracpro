@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -26,15 +27,40 @@ class Tracker(models.Model):
     region = models.ForeignKey('groups.Region', verbose_name=_("Region"), related_name='trackers')
     contact_field = models.ForeignKey('contacts.DataField')
     reporting_period = models.DurationField(max_length=2, choices=REPORTING_PERIOD_CHOICES)
-    minimum_group_threshold = models.IntegerField()
+    minimum_group_threshold = models.IntegerField(null=True, blank=True)
     target_group_threshold = models.IntegerField()
-    maximum_group_threshold = models.IntegerField()
+    maximum_group_threshold = models.IntegerField(null=True, blank=True)
     group_threshold_emails = models.TextField()
-    minimum_contact_threshold = models.IntegerField()
+    minimum_contact_threshold = models.IntegerField(null=True, blank=True)
     target_contact_threshold = models.IntegerField()
-    maximum_contact_threshold = models.IntegerField()
+    maximum_contact_threshold = models.IntegerField(null=True, blank=True)
     contact_threshold_emails = models.TextField()
     emails = models.TextField()
+
+    def clean_fields(self, exclude=None):
+        super(Tracker, self).clean_fields(exclude)
+        if self.minimum_group_threshold is None and self.maximum_group_threshold is None \
+                and self.minimum_contact_threshold is None and self.maximum_contact_threshold is None:
+            raise ValidationError("""At least one of these values is required:
+            Minimum contact threshold, Maximum group threshold, Minimum contact threshold, Maximum contact threshold""")
+
+        errors = {}
+        if self.minimum_group_threshold is not None and (self.minimum_group_threshold > self.target_group_threshold):
+            errors[
+                'minimum_group_threshold'] = "The Minimum group threshold should be less than the Target group threshold"
+
+        if self.maximum_group_threshold is not None and (self.maximum_group_threshold < self.target_group_threshold):
+            errors[
+                'maximum_group_threshold'] = "The Maximum group threshold should be greater than the Target group threshold"
+
+        if self.minimum_contact_threshold is not None and \
+                (self.minimum_contact_threshold > self.target_contact_threshold):
+            errors['minimum_contact_threshold'] = "The Minimum contact threshold should be less than the Target contact threshold"
+
+        if self.maximum_contact_threshold is not None and \
+                (self.maximum_contact_threshold < self.target_contact_threshold):
+            errors['maximum_contact_threshold'] = "The Maximum contact threshold should be greater than the Target contact threshold"
+        raise ValidationError(errors)
 
     def __str__(self):
         return self.contact_field.label
