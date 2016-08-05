@@ -274,6 +274,13 @@ CELERYBEAT_SCHEDULE = {
             'task_name': 'tracpro.trackers.tasks.ApplyGroupRules',
         },
     },
+    'send-alert-threshold-emails': {  # Executes every day at 10:00 A.M
+        'task': 'tracpro.orgs_ext.tasks.ScheduleTaskForActiveOrgs',
+        'schedule': crontab(hour=10, minute=0),
+        'kwargs': {
+            'task_name': 'tracpro.trackers.tasks.SendAlertThresholdEmails',
+        },
+    },
 }
 
 COMPRESS_PRECOMPILERS = (

@@ -68,6 +68,11 @@ class Tracker(models.Model):
     def __unicode__(self):
         return self.contact_field.label
 
+    def related_snapshots(self):
+        # TODO: change __in
+        return Snapshot.objects.filter(contact_field__field=self.contact_field,
+                                       contact_field__contact__in=self.region.contacts.all())
+
 
 @python_2_unicode_compatible
 class GroupRule(models.Model):
