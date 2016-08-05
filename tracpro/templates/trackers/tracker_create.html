@@ -5,6 +5,9 @@
     {% include "trackers/tracker_fields.html" %}
 {% endblock %}
 
+{% block extra-style %}
+	<link rel="stylesheet" href="{% static 'css/tracker.css' %}" type="text/css" />
+{% endblock %}
 
 {% block extra-script %}
     {{ block.super }}
