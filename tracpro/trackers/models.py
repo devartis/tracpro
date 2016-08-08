@@ -7,6 +7,8 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from tracpro.contacts.models import ContactField
+
 
 @python_2_unicode_compatible
 class Tracker(models.Model):
@@ -72,6 +74,12 @@ class Tracker(models.Model):
         # TODO: change __in
         return Snapshot.objects.filter(contact_field__field=self.contact_field,
                                        contact_field__contact__in=self.region.contacts.all())
+
+    def related_contact_fields(self):
+        return ContactField.objects.filter(field=self.contact_field, contact__in=self.region.contacts.all())
+
+    def get_str_reporting_period(self):
+        return dict(Tracker.REPORTING_PERIOD_CHOICES)[self.reporting_period]
 
 
 @python_2_unicode_compatible
