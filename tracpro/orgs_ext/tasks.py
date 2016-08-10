@@ -88,7 +88,7 @@ class ScheduleTaskForActiveOrgs(WrapLoggerMixin, PostTransactionTask):
         kwargs.setdefault('expires', datetime.datetime.now() + settings.ORG_TASK_TIMEOUT)
         return super(ScheduleTaskForActiveOrgs, self).apply_async(*args, **kwargs)
 
-    def run(self, task_name):
+    def run(self, task_name, **kwargs):
         """Schedule the OrgTask to be run for each active org."""
         if task_name not in celery_app.tasks:
             self.log_error(task_name, "No such task is registered.")
@@ -103,7 +103,7 @@ class ScheduleTaskForActiveOrgs(WrapLoggerMixin, PostTransactionTask):
                 msg = "Skipping for {org} because it has no API token."
                 self.log_info(task_name, msg, org=org.name)
             else:
-                signature(task_name, args=[org.pk]).delay()
+                signature(task_name, args=[org.pk], kwargs=kwargs).delay()
                 msg = "Scheduled for {org}."
                 self.log_debug(task_name, msg, org=org.name)
         self.log_info(task_name, "Finished scheduling task for each active org.")
@@ -118,7 +118,7 @@ class OrgTask(WrapCacheMixin, WrapLoggerMixin, PostTransactionTask):
     """Scaffolding to CREATE a task that operates on a single org."""
     abstract = True
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         raise NotImplementedError("Class must define the action to take on the org.")
 
     def apply_async(self, *args, **kwargs):
@@ -174,7 +174,7 @@ class OrgTask(WrapCacheMixin, WrapLoggerMixin, PostTransactionTask):
         self.cache_delete(org, ORG_TASK_LOCK)
         self.log_debug(org, "Released lock.")
 
-    def run(self, org_pk):
+    def run(self, org_pk, **kwargs):
         """Run the org_task with locks and logging."""
         org = apps.get_model('orgs', 'Org').objects.get(pk=org_pk)
         if self.lock_acquire(org):
@@ -187,7 +187,7 @@ class OrgTask(WrapCacheMixin, WrapLoggerMixin, PostTransactionTask):
 
             try:
                 self.log_info(org, "Starting task.")
-                result = self.org_task(org)
+                result = self.org_task(org, **kwargs)
             except Exception as e:
                 fail_count = self.fail_count_incr(org)
                 if isinstance(e, TembaAPIError) and utils.caused_by_bad_api_key(e):

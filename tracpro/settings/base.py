@@ -253,6 +253,17 @@ def _org_scheduler_task(task_name):
         },
     }
 
+
+def _org_scheduler_report_task(period, schedule):
+    return {
+        'task': 'tracpro.orgs_ext.tasks.ScheduleTaskForActiveOrgs',
+        'schedule': schedule,
+        'kwargs': {
+            'task_name': 'tracpro.trackers.tasks.ReportEmails',
+            'period': period
+        },
+    }
+
 CELERYBEAT_SCHEDULE = {
     'sync-polls': _org_scheduler_task('tracpro.polls.tasks.SyncOrgPolls'),
     'sync-contacts': _org_scheduler_task('tracpro.contacts.tasks.SyncOrgContacts'),
@@ -281,6 +292,16 @@ CELERYBEAT_SCHEDULE = {
             'task_name': 'tracpro.trackers.tasks.SendAlertThresholdEmails',
         },
     },
+    'tracker-report-daily': _org_scheduler_report_task(datetime.timedelta(days=1), crontab(hour=10, minute=0)),
+    'tracker-report-weekly': _org_scheduler_report_task(datetime.timedelta(days=7),
+                                                        crontab(hour=10, minute=0, day_of_week='monday')),
+    'tracker-report-fortnightly-first': _org_scheduler_report_task(datetime.timedelta(days=14),
+                                                                   crontab(10, 0, day_of_month='1')),
+    'tracker-report-fortnightly-second': _org_scheduler_report_task(datetime.timedelta(days=14),
+                                                                    crontab(10, 0, day_of_month='15')),
+    'tracker-report-monthly': _org_scheduler_report_task(datetime.timedelta(days=30), crontab(10, 0, day_of_month='1')),
+    'tracker-report-quarterly': _org_scheduler_report_task(datetime.timedelta(days=90),
+                                                           crontab(10, 0, month_of_year='*/3')),
 }
 
 COMPRESS_PRECOMPILERS = (

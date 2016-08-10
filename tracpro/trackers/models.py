@@ -4,6 +4,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
@@ -81,6 +82,57 @@ class Tracker(models.Model):
     def get_str_reporting_period(self):
         return dict(Tracker.REPORTING_PERIOD_CHOICES)[self.reporting_period]
 
+    def create_snapshots(self):
+        for contact_field in self.related_contact_fields():
+            Snapshot.objects.create(contact_field=contact_field, contact_field_value=contact_field.value)
+
+    def apply_group_rules(self):
+        modified_contacts = []
+        for group_rule in self.group_rules.all():
+            snapshots = self.related_snapshots().filter(
+                Q(**{'contact_field_value__' + group_rule.condition: group_rule.get_threshold_value()}))
+
+            for snapshot in snapshots:
+                contact = snapshot.contact_field.contact
+                temba_contact = contact.as_temba(ignore_empty_fields=True)
+
+                # TODO: Contact model should have a group ManyToMany, move this to task when it has it
+                groups = self.org.get_temba_client().get_contact(uuid=temba_contact.uuid).groups
+                temba_contact.groups = group_rule.apply_for(groups)
+                temba_contact.fields = {f.field.key: f.value for f in contact.contactfield_set.all() if f.value}
+
+                modified_contacts.append(temba_contact)
+        return set(modified_contacts)
+
+    def reset_contact_fields(self):
+        updated_contacts = []
+        contact_fields = self.related_contact_fields()
+        for contact_field in contact_fields:
+            contact_field.value = 0
+            contact_field.save()
+            updated_contacts.append(contact_field.contact)
+        return set(updated_contacts)
+
+    def snapshots_below_minimum(self):
+        return self.related_snapshots().filter(contact_field_value__lte=self.minimum_contact_threshold)
+
+    def snapshots_over_maximum(self):
+        return self.related_snapshots().filter(contact_field_value__gte=self.maximum_contact_threshold)
+
+    def under_group_minimum(self):
+        total_group_sum = self.total_group_sum()
+        return total_group_sum <= self.minimum_group_threshold
+
+    def over_group_maximum(self):
+        total_group_sum = self.total_group_sum()
+        return total_group_sum >= self.maximum_group_threshold
+
+    def total_group_sum(self):
+        total_group_sum = 0
+        for value in self.related_snapshots().values_list('contact_field_value', flat=True):
+            total_group_sum += int(value)
+        return total_group_sum
+
 
 @python_2_unicode_compatible
 class GroupRule(models.Model):
@@ -115,6 +167,13 @@ class GroupRule(models.Model):
             'CMin': 'minimum_contact_threshold',
         }
         return getattr(self.tracker, threshold_mapper[self.threshold])
+
+    def apply_for(self, groups):
+        if self.action == 'add':
+            groups.append(self.region.uuid)
+        elif self.region.uuid in groups:
+            groups.remove(self.region.uuid)
+        return groups
 
 
 @python_2_unicode_compatible
