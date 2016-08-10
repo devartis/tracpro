@@ -22,7 +22,7 @@ LAST_FETCHED_RUN_TIME_KEY = 'org:%d:last_fetched_run_time'
 
 class FetchOrgRuns(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         """
         Fetches new and modified flow runs for the given org and creates/updates
         poll responses.
@@ -124,7 +124,7 @@ def pollrun_restart_participants(pollrun_id, contact_uuids):
 
 class SyncOrgPolls(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         """
         Syncs Poll info and removes any Polls (and associated questions) that
         are no longer on the remote.

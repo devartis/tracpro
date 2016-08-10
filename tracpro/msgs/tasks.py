@@ -51,7 +51,7 @@ def send_unsolicited_message(org, text, contact):
 
 class FetchOrgInboxMessages(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         from .models import InboxMessage
         from tracpro.contacts.models import Contact
 

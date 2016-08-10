@@ -34,13 +34,13 @@ def push_contact_change(contact_id, change_type):
 
 class SyncOrgContacts(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         apps.get_model('contacts', 'Contact').objects.sync(org)
 
 
 class SyncOrgDataFields(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         """
         Syncs DataField info and removes any DataFields (and associated
         contact values) that are no longer on the remote.

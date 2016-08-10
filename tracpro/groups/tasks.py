@@ -7,5 +7,5 @@ from tracpro.orgs_ext.tasks import OrgTask
 
 class SyncOrgBoundaries(OrgTask):
 
-    def org_task(self, org):
+    def org_task(self, org, **kwargs):
         apps.get_model('groups', 'Boundary').objects.sync(org)
