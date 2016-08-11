@@ -89,6 +89,10 @@ class Contact(models.Model):
         'groups.Group', null=True, verbose_name=_("Reporter group"),
         related_name='contacts',
         help_text=_("Reporter group to which this contact belongs."))
+    groups = models.ManyToManyField(
+        'groups.Group', null=True, verbose_name=_("Groups"),
+        related_name='all_contacts',
+        help_text=_("All groups to which this contact belongs."))
     language = models.CharField(
         max_length=3, verbose_name=_("Language"), null=True, blank=True,
         help_text=_("Language for this contact"))
@@ -129,17 +133,13 @@ class Contact(models.Model):
 
     def as_temba(self):
         """Return a Temba object representing this Contact."""
-        groups = [self.region.uuid]
-        if self.group_id:
-            groups.append(self.group.uuid)
-
         fields = {f.field.key: f.get_value() for f in self.contactfield_set.all()}
 
         temba_contact = TembaContact()
         temba_contact.name = self.name
         temba_contact.urns = [self.urn]
         temba_contact.fields = fields
-        temba_contact.groups = groups
+        temba_contact.groups = list(self.groups.all())
         temba_contact.language = self.language
         temba_contact.uuid = self.uuid
 

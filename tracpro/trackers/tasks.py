@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+from dash.utils.sync import ChangeType, sync_push_contact
 from django.conf import settings
 from django.core.mail import send_mail
 from djcelery_transactions import task
@@ -18,13 +19,10 @@ class ApplyGroupRules(OrgTask):
     def org_task(self, org, **kwargs):
         Contact.objects.sync()
 
-        temba_client = org.get_temba_client()
         for tracker in org.trackers.all():
             updated_contacts = tracker.apply_group_rules()
             for contact in updated_contacts:
-                temba_client.update_contact(uuid=contact.uuid, name=contact.name,
-                                            urns=contact.urns, fields=contact.fields,
-                                            groups=contact.groups)
+                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
 
 
 class SendAlertThresholdEmails(OrgTask):
@@ -78,17 +76,12 @@ class ReportEmails(OrgTask):
             fail_silently=True)    
 
     def org_task(self, org, **kwargs):
-        temba_client = org.get_temba_client()
         for tracker in org.trackers.filter(reporting_period=kwargs.get('period')):
             self.send_report_email(tracker)
 
             updated_contacts = tracker.reset_contact_fields()
             for contact in updated_contacts:
-                fields = {f.field.key: f.value for f in contact.contactfield_set.all() if f.value}
-                temba_contact = temba_client.get_contact(uuid=contact.uuid)
-                temba_client.update_contact(uuid=contact.uuid, name=temba_contact.name,
-                                            urns=temba_contact.urns, fields=fields,
-                                            groups=temba_contact.groups)
+                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
 
 
 @task

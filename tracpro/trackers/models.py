@@ -9,6 +9,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from tracpro.contacts.models import ContactField
+from tracpro.groups.models import Group
 
 
 @python_2_unicode_compatible
@@ -94,14 +95,9 @@ class Tracker(models.Model):
 
             for snapshot in snapshots:
                 contact = snapshot.contact_field.contact
-                temba_contact = contact.as_temba(ignore_empty_fields=True)
+                group_rule.apply_for(contact)
 
-                # TODO: Contact model should have a group ManyToMany, move this to task when it has it
-                groups = self.org.get_temba_client().get_contact(uuid=temba_contact.uuid).groups
-                temba_contact.groups = group_rule.apply_for(groups)
-                temba_contact.fields = {f.field.key: f.value for f in contact.contactfield_set.all() if f.value}
-
-                modified_contacts.append(temba_contact)
+                modified_contacts.append(contact)
         return set(modified_contacts)
 
     def reset_contact_fields(self):
@@ -168,12 +164,12 @@ class GroupRule(models.Model):
         }
         return getattr(self.tracker, threshold_mapper[self.threshold])
 
-    def apply_for(self, groups):
+    def apply_for(self, contact):
+        group = Group.objects.get(uuid=self.region.uuid)
         if self.action == 'add':
-            groups.append(self.region.uuid)
-        elif self.region.uuid in groups:
-            groups.remove(self.region.uuid)
-        return groups
+            contact.groups.add(group)
+        else:
+            contact.groups.remove(group)
 
 
 @python_2_unicode_compatible
