@@ -198,13 +198,14 @@ class Contact(models.Model):
 
         # Use the first Temba group that matches one of the org's Groups.
         group = _get_first(Group, temba_contact.groups)
-
+        groups = [Group.objects.get(uuid=group_uuid) for group_uuid in temba_contact.groups]
         return {
             'org': org,
             'name': temba_contact.name or "",
             'urn': temba_contact.urns[0],
             'region': region,
             'group': group,
+            'groups': groups,
             'language': temba_contact.language,
             'uuid': temba_contact.uuid,
             'temba_modified_on': temba_contact.modified_on,

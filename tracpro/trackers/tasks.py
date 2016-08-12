@@ -17,7 +17,7 @@ class CreateSnapshots(OrgTask):
 
 class ApplyGroupRules(OrgTask):
     def org_task(self, org, **kwargs):
-        Contact.objects.sync()
+        Contact.objects.sync(org)
 
         for tracker in org.trackers.all():
             updated_contacts = tracker.apply_group_rules()
@@ -73,7 +73,7 @@ class ReportEmails(OrgTask):
             message=msg,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=tracker.emails.split(', '),
-            fail_silently=True)    
+            fail_silently=True)
 
     def org_task(self, org, **kwargs):
         for tracker in org.trackers.filter(reporting_period=kwargs.get('period')):
