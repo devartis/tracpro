@@ -49,8 +49,7 @@ class TrackerCRUDL(SmartCRUDL):
             for obj in group_rule_formset.deleted_objects:
                 obj.delete()
             for group_rule in group_rule_formset.new_objects:
-                group_rule.tracker = self.object
-                group_rule.save()
+                group_rule.set_tracker(self.object)
             for group_rule in group_rule_formset.changed_objects:
                 group_rule[0].save()
 
@@ -88,15 +87,9 @@ class TrackerCRUDL(SmartCRUDL):
             self.object = form.save()
             group_rule_formset.save(commit=False)
             for group_rule in group_rule_formset.new_objects:
-                group_rule.tracker = self.object
-                group_rule.save()
+                group_rule.set_tracker(self.object)
 
             return HttpResponseRedirect(self.get_success_url())
-
-
-class GroupRuleCRUDL(SmartCRUDL):
-    model = GroupRule
-    actions = ('create', 'list')
 
 
 class AlertCRUDL(SmartCRUDL):
@@ -136,13 +129,12 @@ class AlertCRUDL(SmartCRUDL):
 
         def form_valid(self, form, alert_formset):
             alert = form.save(commit=False)
-            alert.org = self.org
-            alert.save()
+            alert.set_org(self.org)
             self.object = alert
+
             alert_formset.save(commit=False)
             for alert_rule in alert_formset.new_objects:
-                alert_rule.alert = self.object
-                alert_rule.save()
+                alert_rule.set_alert(self.object)
             return HttpResponseRedirect(self.get_success_url())
 
     class Update(OrgPermsMixin, SmartUpdateView):
@@ -178,8 +170,7 @@ class AlertCRUDL(SmartCRUDL):
             for alert_rule in alert_formset.deleted_objects:
                 alert_rule.delete()
             for alert_rule in alert_formset.new_objects:
-                alert_rule.alert = self.object
-                alert_rule.save()
+                alert_rule.set_alert(self.object)
             for alert_rule in alert_formset.changed_objects:
                 alert_rule[0].save()
             return HttpResponseRedirect(self.get_success_url())

@@ -1,15 +1,18 @@
-.group_rule-formset {
-	border: solid 1px black;
-	padding: 10px;
-	margin-bottom: 10px;
+.rule-formset {
+    border: solid 1px black;
+    padding: 10px;
+    margin-bottom: 10px;
 }
-.group_rule-formset p {
-	float: left;
-	margin-right: 10px;
+
+.rule-formset p {
+    float: left;
+    margin-right: 10px;
 }
-.group_rule-formset select {
-	width: 200px;
+
+.rule-formset select {
+    width: 200px;
 }
-.group_rule-formset-add {
-	float: right;
+
+.rule-formset-add {
+    float: right;
 }

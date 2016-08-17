@@ -199,6 +199,10 @@ class GroupRule(models.Model):
         ContactAction.objects.get_or_create(action=self.action, contact=contact, group=group,
                                             tracker=self.tracker)
 
+    def set_tracker(self, tracker):
+        self.tracker = tracker
+        self.save()
+
 
 @python_2_unicode_compatible
 class Snapshot(models.Model):
@@ -234,6 +238,10 @@ class Alert(models.Model):
     def __str__(self):
         return self.name
 
+    def set_org(self, org):
+        self.org = org
+        self.save()
+
 
 @python_2_unicode_compatible
 class AlertRule(models.Model):
@@ -250,3 +258,7 @@ class AlertRule(models.Model):
 
     def __str__(self):
         return self.flow
+
+    def set_alert(self, alert):
+        self.alert = alert
+        self.save()

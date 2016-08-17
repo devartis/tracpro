@@ -6,16 +6,16 @@
     </table>
     <br>
     <br>
-    {{ group_rule_formset.management_form }}
+    {{ alert_formset.management_form }}
 
-    {% for group_rule_form in group_rule_formset %}
+    {% for alert_form in alert_formset %}
         <div class="rule-formset">
-            {{ group_rule_form.as_p }}
+            {{ alert_form.as_p }}
         </div>
     {% endfor %}
 
-    {% if group_rule_formset.non_form_errors %}
-        {% for error in group_rule_formset.non_form_errors %}
+    {% if alert_formset.non_form_errors %}
+        {% for error in alert_formset.non_form_errors %}
             {{ error|escape }}
         {% endfor %}
     {% endif %}
