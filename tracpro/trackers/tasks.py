@@ -36,11 +36,11 @@ class SendAlertThresholdEmails(OrgTask):
 
     def org_task(self, org, **kwargs):
         for tracker in org.trackers.all():
-            for snapshot in tracker.snapshots_below_minimum():
+            for snapshot in tracker.snapshots_below_or_at_minimum():
                 msg = 'The value %s is less than minimum contact threshold' % snapshot.contact_field_value
                 self.sent_alert_threshold_email(msg, tracker.contact_threshold_emails)
 
-            for snapshot in tracker.snapshots_over_maximum():
+            for snapshot in tracker.snapshots_over_or_at_maximum():
                 msg = 'The value %s is greater than maximum contact threshold' % snapshot.contact_field_value
                 self.sent_alert_threshold_email(msg, tracker.contact_threshold_emails)
 
@@ -55,19 +55,43 @@ class SendAlertThresholdEmails(OrgTask):
 
 
 class ReportEmails(OrgTask):
+    def contacts_by_group(self, contact_actions_by_group, action):
+        contacts_by_group = ''
+        for contact_action in contact_actions_by_group:
+            contacts_by_group += '%s contacts %s %s\n' % (contact_action['cant_contacts'], action, contact_action['group__name'])
+        return contacts_by_group
 
     def send_report_email(self, tracker):
-        msg = """This is a %s report email.
+        below = tracker.today_snapshots_below_minimum().count()
+        at_minimum = tracker.today_snapshots_at_minimum().count()
+        between = tracker.today_snapshots_between_minimum_and_maximum().count()
+        at_maximum = tracker.today_snapshots_at_maximum().count()
+        above = tracker.today_snapshots_above_maximum().count()
 
-            Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-            Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero
-            sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-            Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed,
-            commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros
-            ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar
-            facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu
-            vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan
-            porttitor, facilisis luctus, metus""" % tracker.get_str_reporting_period()
+        added = self.contacts_by_group(tracker.contact_actions_of_period('add'), 'added to')
+        removed = self.contacts_by_group(tracker.contact_actions_of_period('remove'), 'removed from')
+
+        msg = """
+                Group: {group}
+                Contact Field: {contact_field}
+
+                Minimum : {minimum}
+                Maximum: {maximum}
+
+                {below} below the minimum value
+                {at_minimum} at minimum value
+                {between} between minimum and maximum value
+                {at_maximum} at maximum value
+                {above} above maximum value
+
+                --------------------------------------------------
+
+                In this reporting period:
+
+                """.format(group=tracker.region.name, contact_field=tracker.contact_field.label,
+                           minimum=tracker.minimum_contact_threshold, maximum=tracker.maximum_contact_threshold,
+                           below=below, at_minimum=at_minimum, between=between, at_maximum=at_maximum, above=above)
+        msg += added + removed
         send_mail(
             subject="Report",
             message=msg,

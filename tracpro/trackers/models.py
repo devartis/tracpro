@@ -4,7 +4,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
@@ -77,6 +77,11 @@ class Tracker(models.Model):
         return Snapshot.objects.filter(contact_field__field=self.contact_field,
                                        contact_field__contact__in=self.region.contacts.all())
 
+    def today_related_snapshots(self):
+        today = datetime.date.today()
+        return self.related_snapshots().filter(timestamp__year=today.year, timestamp__month=today.month,
+                                               timestamp__day=today.day)
+
     def related_contact_fields(self):
         return ContactField.objects.filter(field=self.contact_field, contact__in=self.region.contacts.all())
 
@@ -109,10 +114,10 @@ class Tracker(models.Model):
             updated_contacts.append(contact_field.contact)
         return set(updated_contacts)
 
-    def snapshots_below_minimum(self):
+    def snapshots_below_or_at_minimum(self):
         return self.related_snapshots().filter(contact_field_value__lte=self.minimum_contact_threshold)
 
-    def snapshots_over_maximum(self):
+    def snapshots_over_or_at_maximum(self):
         return self.related_snapshots().filter(contact_field_value__gte=self.maximum_contact_threshold)
 
     def under_group_minimum(self):
@@ -128,6 +133,27 @@ class Tracker(models.Model):
         for value in self.related_snapshots().values_list('contact_field_value', flat=True):
             total_group_sum += int(value)
         return total_group_sum
+
+    def today_snapshots_below_minimum(self):
+        return self.today_related_snapshots().filter(contact_field_value__lt=self.minimum_contact_threshold)
+
+    def today_snapshots_at_minimum(self):
+        return self.today_related_snapshots().filter(contact_field_value=self.minimum_contact_threshold)
+
+    def today_snapshots_between_minimum_and_maximum(self):
+        return self.today_related_snapshots().filter(contact_field_value__gt=self.minimum_contact_threshold).filter(
+            contact_field_value__lt=self.maximum_contact_threshold)
+
+    def today_snapshots_at_maximum(self):
+        return self.today_related_snapshots().filter(contact_field_value=self.maximum_contact_threshold)
+
+    def today_snapshots_above_maximum(self):
+        return self.today_related_snapshots().filter(contact_field_value__gt=self.maximum_contact_threshold)
+
+    def contact_actions_of_period(self, action):
+        start_of_period = datetime.datetime.today() - self.reporting_period
+        contact_actions = self.contact_actions.filter(timestamp__gt=start_of_period, action=action)
+        return contact_actions.values('group__name').annotate(cant_contacts=Count('group'))
 
 
 @python_2_unicode_compatible
@@ -170,6 +196,8 @@ class GroupRule(models.Model):
             contact.groups.add(group)
         else:
             contact.groups.remove(group)
+        ContactAction.objects.get_or_create(action=self.action, contact=contact, group=group,
+                                            tracker=self.tracker)
 
 
 @python_2_unicode_compatible
@@ -180,3 +208,19 @@ class Snapshot(models.Model):
 
     def __str__(self):
         return '%s: %s (%s)' % (self.contact_field.field.label, self.contact_field_value, self.timestamp)
+
+
+@python_2_unicode_compatible
+class ContactAction(models.Model):
+    ACTION_CHOICES = (
+        ('add', _('Add')),
+        ('remove', _('Remove'))
+    )
+    action = models.CharField(max_length=6, choices=ACTION_CHOICES)
+    contact = models.ForeignKey('contacts.Contact', verbose_name=_('Contact'), related_name='contact_actions')
+    group = models.ForeignKey('groups.Group', verbose_name=_('Group'), related_name='contact_actions')
+    tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='contact_actions')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s %s to %s' % (self.action, self.contact, self.group)
