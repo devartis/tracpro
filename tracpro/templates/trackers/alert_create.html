@@ -1,0 +1,40 @@
+{% extends "smartmin/create.html" %}
+{% load static %}
+
+{% block fields %}
+    <fieldset>
+        <table>
+            {{ form.as_table }}
+        </table>
+        <br>
+        <br>
+
+        {{ alert_formset.management_form }}
+
+        {% for alert_form in alert_formset %}
+            <div class="alert-formset">
+                {{ alert_form.as_p }}
+            </div>
+        {% endfor %}
+
+        {% if alert_formset.non_form_errors %}
+            {% for error in alert_formset.non_form_errors %}
+                {{ error|escape }}
+            {% endfor %}
+        {% endif %}
+    </fieldset>
+{% endblock %}
+
+
+{% block extra-script %}
+    {{ block.super }}
+    <script src="{% static 'js/jquery.formset.js' %}"></script>
+    <script>
+        $('.alert-formset').formset({
+            addText: '+ add another alert rule',
+            addCssClass: 'group_rule-formset-add btn btn-primary',
+            deleteText: '',
+            deleteCssClass: 'glyphicon glyphicon-trash'
+        });
+    </script>
+{% endblock %}

@@ -5,8 +5,8 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from smartmin.views import SmartCRUDL, SmartListView, SmartCreateView, SmartUpdateView
 
-from .forms import GroupRuleFormSet, TrackerForm
-from .models import Tracker, GroupRule
+from .forms import GroupRuleFormSet, TrackerForm, AlertRuleFormSet, AlertForm
+from .models import Tracker, GroupRule, Alert
 
 
 class TrackerCRUDL(SmartCRUDL):
@@ -18,7 +18,7 @@ class TrackerCRUDL(SmartCRUDL):
 
     class Update(OrgPermsMixin, SmartUpdateView):
         title = _("Tracker configuration")
-        success_message = _("Your new tracker and group rules have been updated")
+        success_message = _("Your tracker and group rules have been updated")
         form_class = TrackerForm
 
         def dispatch(self, *args, **kwargs):
@@ -97,3 +97,89 @@ class TrackerCRUDL(SmartCRUDL):
 class GroupRuleCRUDL(SmartCRUDL):
     model = GroupRule
     actions = ('create', 'list')
+
+
+class AlertCRUDL(SmartCRUDL):
+    model = Alert
+    actions = ('create', 'list', 'update')
+
+    class List(OrgPermsMixin, SmartListView):
+        permission = 'trackers.alert_list'
+
+    class Create(OrgPermsMixin, SmartCreateView):
+        title = _("Alert configuration")
+        success_message = _("Your new alert rules have been created")
+        form_class = AlertForm
+
+        def dispatch(self, *args, **kwargs):
+            self.object = None
+            self.form = self.get_form()
+            return super(AlertCRUDL.Create, self).dispatch(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(AlertCRUDL.Create, self).get_context_data(**kwargs)
+            if 'alert_formset' not in context:
+                data = {'form-TOTAL_FORMS': '1', 'form-INITIAL_FORMS': '0'}
+                context['alert_formset'] = AlertRuleFormSet(data)
+            return context
+
+        def post(self, request, *args, **kwargs):
+            form = self.get_form_class()(request.POST)
+            alert_formset = AlertRuleFormSet(request.POST)
+            if form.is_valid() and alert_formset.is_valid():
+                return self.form_valid(form, alert_formset)
+            else:
+                return self.form_invalid(form, alert_formset)
+
+        def form_invalid(self, form, alert_formset):
+            return self.render_to_response(self.get_context_data(form=form, alert_formset=alert_formset))
+
+        def form_valid(self, form, alert_formset):
+            alert = form.save(commit=False)
+            alert.org = self.org
+            alert.save()
+            self.object = alert
+            alert_formset.save(commit=False)
+            for alert_rule in alert_formset.new_objects:
+                alert_rule.alert = self.object
+                alert_rule.save()
+            return HttpResponseRedirect(self.get_success_url())
+
+    class Update(OrgPermsMixin, SmartUpdateView):
+        title = _("Alert configuration")
+        success_message = _("Your alert rules have been updated")
+        form_class = AlertForm
+
+        def dispatch(self, *args, **kwargs):
+            self.object = self.get_object()
+            self.form = self.get_form()
+            return super(AlertCRUDL.Update, self).dispatch(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(AlertCRUDL.Update, self).get_context_data(**kwargs)
+            if 'alert_formset' not in context:
+                context['alert_formset'] = AlertRuleFormSet(queryset=context['alert'].alert_rules.all())
+            return context
+
+        def post(self, request, *args, **kwargs):
+            form = self.get_form_class()(request.POST, instance=self.object)
+            alert_formset = AlertRuleFormSet(request.POST, queryset=self.object.alert_rules.all())
+            if form.is_valid() and alert_formset.is_valid():
+                return self.form_valid(form, alert_formset)
+            else:
+                return self.form_invalid(form, alert_formset)
+
+        def form_invalid(self, form, alert_formset):
+            return self.render_to_response(self.get_context_data(form=form, alert_formset=alert_formset))
+
+        def form_valid(self, form, alert_formset):
+            self.object = form.save()
+            alert_formset.save(commit=False)
+            for alert_rule in alert_formset.deleted_objects:
+                alert_rule.delete()
+            for alert_rule in alert_formset.new_objects:
+                alert_rule.alert = self.object
+                alert_rule.save()
+            for alert_rule in alert_formset.changed_objects:
+                alert_rule[0].save()
+            return HttpResponseRedirect(self.get_success_url())

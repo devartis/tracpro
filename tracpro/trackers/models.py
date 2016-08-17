@@ -224,3 +224,29 @@ class ContactAction(models.Model):
 
     def __str__(self):
         return '%s %s to %s' % (self.action, self.contact, self.group)
+
+
+@python_2_unicode_compatible
+class Alert(models.Model):
+    org = models.ForeignKey('orgs.Org', verbose_name=_("Org"), related_name='alerts')
+    name = models.CharField(verbose_name=_("Name"), max_length=128, help_text=_("The name of this alert"))
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class AlertRule(models.Model):
+    ACTION_CHOICES = (
+        ('add', _('Add')),
+        ('remove', _('Remove'))
+    )
+
+    alert = models.ForeignKey(Alert, related_name='alert_rules')
+    flow = models.ForeignKey('polls.Poll', related_name='alert_rules')
+    region = models.ForeignKey('groups.Region', verbose_name=_("Region"), related_name='alert_rules')
+    action = models.CharField(max_length=6, choices=ACTION_CHOICES)
+    group = models.ForeignKey('groups.Group', related_name='alert_rules')
+
+    def __str__(self):
+        return self.flow

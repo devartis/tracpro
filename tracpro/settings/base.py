@@ -327,6 +327,7 @@ GROUP_PERMISSIONS = {
         'polls.response.*',
         'profiles.profile.*',
         'trackers.tracker.*',
+        'trackers.alert.*',
     ),
     "Editors": (
         'baseline.baselineterm.*',
@@ -390,6 +391,7 @@ PERMISSIONS = {
     # can't create profiles.user.* permissions because we don't own User
     'profiles.profile': ('user_create', 'user_read', 'user_update', 'user_list'),
     'trackers.tracker': ('create', 'update', 'list'),
+    'trackers.alert': ('create', 'update', 'list'),
 }
 
 RTL_LANGUAGES = ['ps', 'fa']
