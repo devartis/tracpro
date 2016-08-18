@@ -150,6 +150,15 @@ class Tracker(models.Model):
     def today_snapshots_above_maximum(self):
         return self.today_related_snapshots().filter(contact_field_value__gt=self.maximum_contact_threshold)
 
+    def today_snapshots_below_target(self):
+        return self.today_related_snapshots().filter(contact_field_value__lt=self.target_contact_threshold)
+
+    def today_snapshots_at_target(self):
+        return self.today_related_snapshots().filter(contact_field_value=self.target_contact_threshold)
+
+    def today_snapshots_above_target(self):
+        return self.today_related_snapshots().filter(contact_field_value__gt=self.target_contact_threshold)
+
     def contact_actions_of_period(self, action):
         start_of_period = datetime.datetime.today() - self.reporting_period
         contact_actions = self.contact_actions.filter(timestamp__gt=start_of_period, action=action)

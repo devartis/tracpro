@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import datetime
 from dash.utils.sync import ChangeType, sync_push_contact
 from django.conf import settings
 from django.core.mail import send_mail
@@ -55,26 +56,61 @@ class SendAlertThresholdEmails(OrgTask):
 
 
 class ReportEmails(OrgTask):
+    def org_task(self, org, **kwargs):
+        for tracker in org.trackers.filter(reporting_period=kwargs.get('period')):
+            self.send_report_emails(tracker)
+
+            updated_contacts = tracker.reset_contact_fields()
+            for contact in updated_contacts:
+                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
+
+    def send_report_emails(self, tracker):
+        msg = self.report_email_for(tracker, self.minimum_and_maximum_values(tracker))
+        self.sent_report_email(tracker, msg)
+
+        msg = self.report_email_for(tracker, self.target_values(tracker))
+        self.sent_report_email(tracker, msg)
+
+    def sent_report_email(self, tracker, msg):
+        today = datetime.date.today()
+        send_mail(
+            subject="Reporting Period %s - %s" % (today - tracker.reporting_period, today),
+            message=msg,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=tracker.emails.split(', '),
+            fail_silently=True)
+
+    def report_email_for(self, tracker, numbers):
+        added = self.contacts_by_group(tracker.contact_actions_of_period('add'), 'added to')
+        removed = self.contacts_by_group(tracker.contact_actions_of_period('remove'), 'removed from')
+        msg = """
+                Group: {group}
+                Contact Field: {contact_field}
+
+                {numbers}
+
+                --------------------------------------------------
+
+                In this reporting period:
+
+                """.format(group=tracker.region.name, contact_field=tracker.contact_field.label, numbers=numbers)
+        msg += added + removed
+        return msg
+
     def contacts_by_group(self, contact_actions_by_group, action):
         contacts_by_group = ''
         for contact_action in contact_actions_by_group:
-            contacts_by_group += '%s contacts %s %s\n' % (contact_action['cant_contacts'], action, contact_action['group__name'])
+            contacts_by_group += '%s contacts %s %s\n' % (contact_action['cant_contacts'], action,
+                                                          contact_action['group__name'])
         return contacts_by_group
 
-    def send_report_email(self, tracker):
+    def minimum_and_maximum_values(self, tracker):
         below = tracker.today_snapshots_below_minimum().count()
         at_minimum = tracker.today_snapshots_at_minimum().count()
         between = tracker.today_snapshots_between_minimum_and_maximum().count()
         at_maximum = tracker.today_snapshots_at_maximum().count()
         above = tracker.today_snapshots_above_maximum().count()
-
-        added = self.contacts_by_group(tracker.contact_actions_of_period('add'), 'added to')
-        removed = self.contacts_by_group(tracker.contact_actions_of_period('remove'), 'removed from')
-
-        msg = """
-                Group: {group}
-                Contact Field: {contact_field}
-
+        minimum_and_maximum_numbers = """
                 Minimum : {minimum}
                 Maximum: {maximum}
 
@@ -83,29 +119,23 @@ class ReportEmails(OrgTask):
                 {between} between minimum and maximum value
                 {at_maximum} at maximum value
                 {above} above maximum value
-
-                --------------------------------------------------
-
-                In this reporting period:
-
-                """.format(group=tracker.region.name, contact_field=tracker.contact_field.label,
-                           minimum=tracker.minimum_contact_threshold, maximum=tracker.maximum_contact_threshold,
+                """.format(minimum=tracker.minimum_contact_threshold, maximum=tracker.maximum_contact_threshold,
                            below=below, at_minimum=at_minimum, between=between, at_maximum=at_maximum, above=above)
-        msg += added + removed
-        send_mail(
-            subject="Report",
-            message=msg,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=tracker.emails.split(', '),
-            fail_silently=True)
+        return minimum_and_maximum_numbers
 
-    def org_task(self, org, **kwargs):
-        for tracker in org.trackers.filter(reporting_period=kwargs.get('period')):
-            self.send_report_email(tracker)
+    def target_values(self, tracker):
+        below_target = tracker.today_snapshots_below_target().count()
+        at_target = tracker.today_snapshots_at_target().count()
+        above_target = tracker.today_snapshots_above_target().count()
+        target_numbers = """
+                Target : {target}
 
-            updated_contacts = tracker.reset_contact_fields()
-            for contact in updated_contacts:
-                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
+                {below_target} below the target
+                {at_target} at the target
+                {above_target} above the target
+                """.format(target=tracker.target_contact_threshold, below_target=below_target,
+                           at_target=at_target, above_target=above_target)
+        return target_numbers
 
 
 @task
