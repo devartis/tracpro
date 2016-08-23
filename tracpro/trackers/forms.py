@@ -20,6 +20,7 @@ class TrackerForm(forms.ModelForm):
     class Meta:
         model = Tracker
         fields = forms.ALL_FIELDS
+        exclude = ('org', )
 
     def __init__(self, *args, **kwargs):
         super(TrackerForm, self).__init__(*args, **kwargs)

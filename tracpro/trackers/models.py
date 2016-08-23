@@ -164,6 +164,10 @@ class Tracker(models.Model):
         contact_actions = self.contact_actions.filter(timestamp__gt=start_of_period, action=action)
         return contact_actions.values('group__name').annotate(cant_contacts=Count('group'))
 
+    def set_org(self, org):
+        self.org = org
+        self.save()
+
 
 @python_2_unicode_compatible
 class GroupRule(models.Model):

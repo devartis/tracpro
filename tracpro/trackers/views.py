@@ -84,7 +84,9 @@ class TrackerCRUDL(SmartCRUDL):
             return self.render_to_response(self.get_context_data(form=form, group_rule_formset=group_rule_formset))
 
         def form_valid(self, form, group_rule_formset):
-            self.object = form.save()
+            self.object = form.save(commit=False)
+            self.object.set_org(self.org)
+
             group_rule_formset.save(commit=False)
             for group_rule in group_rule_formset.new_objects:
                 group_rule.set_tracker(self.object)
@@ -128,9 +130,8 @@ class AlertCRUDL(SmartCRUDL):
             return self.render_to_response(self.get_context_data(form=form, alert_formset=alert_formset))
 
         def form_valid(self, form, alert_formset):
-            alert = form.save(commit=False)
-            alert.set_org(self.org)
-            self.object = alert
+            self.object = form.save(commit=False)
+            self.object.set_org(self.org)
 
             alert_formset.save(commit=False)
             for alert_rule in alert_formset.new_objects:
