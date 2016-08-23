@@ -205,8 +205,8 @@ class GroupRule(models.Model):
             contact.groups.add(group)
         else:
             contact.groups.remove(group)
-        ContactAction.objects.get_or_create(action=self.action, contact=contact, group=group,
-                                            tracker=self.tracker)
+        TrackerOccurrence.objects.get_or_create(action=self.action, contact=contact, group=group,
+                                                tracker=self.tracker)
 
     def set_tracker(self, tracker):
         self.tracker = tracker
@@ -224,7 +224,7 @@ class Snapshot(models.Model):
 
 
 @python_2_unicode_compatible
-class ContactAction(models.Model):
+class TrackerOccurrence(models.Model):
     ACTION_CHOICES = (
         ('add', _('Add')),
         ('remove', _('Remove'))
@@ -264,6 +264,7 @@ class AlertRule(models.Model):
     region = models.ForeignKey('groups.Region', verbose_name=_("Region"), related_name='alert_rules')
     action = models.CharField(max_length=6, choices=ACTION_CHOICES)
     group = models.ForeignKey('groups.Group', related_name='alert_rules')
+    last_executed = models.DateTimeField(null=True)
 
     def __str__(self):
         return self.flow

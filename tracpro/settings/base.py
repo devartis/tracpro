@@ -292,6 +292,13 @@ CELERYBEAT_SCHEDULE = {
             'task_name': 'tracpro.trackers.tasks.SendAlertThresholdEmails',
         },
     },
+    'trigger-flows-from-alerts': {  # Executes every day at 10:00 A.M
+        'task': 'tracpro.orgs_ext.tasks.ScheduleTaskForActiveOrgs',
+        'schedule': crontab(hour=10, minute=0),
+        'kwargs': {
+            'task_name': 'tracpro.trackers.tasks.TriggerFlowsFromAlerts',
+        },
+    },
     'tracker-report-daily': _org_scheduler_report_task(datetime.timedelta(days=1), crontab(hour=10, minute=0)),
     'tracker-report-weekly': _org_scheduler_report_task(datetime.timedelta(days=7),
                                                         crontab(hour=10, minute=0, day_of_week='monday')),

@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from tracpro.trackers.tasks import create_occurrence_trigger_the_alert_action
 from .models import Contact, ContactField
 
 
@@ -33,10 +32,3 @@ def set_data_field_values(sender, instance, **kwargs):
             contact_field.save()
 
     del instance._data_field_values
-
-
-@receiver(post_save, sender=Contact)
-def trigger_the_alert_actions(sender, instance, **kwargs):
-    # If group membership has changed, and we have an alert related to this particular change,
-    # then create an Occurence & trigger the alert action
-    create_occurrence_trigger_the_alert_action.delay(instance)

@@ -1,13 +1,16 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
+
 from dash.utils.sync import ChangeType, sync_push_contact
 from django.conf import settings
 from django.core.mail import send_mail
-from djcelery_transactions import task
+from temba_client.base import TembaAPIError
 
 from tracpro.contacts.models import Contact
 from tracpro.orgs_ext.tasks import OrgTask
+from tracpro.trackers.models import AlertRule
+from tracpro.trackers.models import TrackerOccurrence
 
 
 class CreateSnapshots(OrgTask):
@@ -138,6 +141,23 @@ class ReportEmails(OrgTask):
         return target_numbers
 
 
-@task
-def create_occurrence_trigger_the_alert_action(contact):
-    print "We should check if group membership has changed, and we have an alert related to this particular change."
+class TriggerFlowsFromAlerts(OrgTask):
+    def org_task(self, org, **kwargs):
+        now = datetime.datetime.now()
+        for alert_rule in AlertRule.objects.filter(alert__org=org):
+            occurrences = TrackerOccurrence.objects.filter(tracker__org=org,
+                                                           action=alert_rule.action, group=alert_rule.group)
+            if alert_rule.last_executed:
+                occurrences = occurrences.filter(timestamp__range=(alert_rule.last_executed, now))
+
+            if occurrences.exists():
+                contacts = list(alert_rule.region.contacts.all().values_list('uuid', flat=True))
+                temba_client = alert_rule.alert.org.get_temba_client()
+                # TODO: check if "restart_participants" should be True
+                try:
+                    temba_client.create_runs(flow=alert_rule.flow.flow_uuid,
+                                             contacts=contacts, restart_participants=False)
+                    alert_rule.last_executed = now
+                    alert_rule.save()
+                except TembaAPIError:
+                    continue
