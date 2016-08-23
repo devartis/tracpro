@@ -84,8 +84,8 @@ class ReportEmails(OrgTask):
             fail_silently=True)
 
     def report_email_for(self, tracker, numbers):
-        added = self.contacts_by_group(tracker.contact_actions_of_period('add'), 'added to')
-        removed = self.contacts_by_group(tracker.contact_actions_of_period('remove'), 'removed from')
+        added = self.contacts_by_group(tracker.occurrences_of_period('add'), 'added to')
+        removed = self.contacts_by_group(tracker.occurrences_of_period('remove'), 'removed from')
         msg = """
                 Group: {group}
                 Contact Field: {contact_field}
@@ -100,11 +100,11 @@ class ReportEmails(OrgTask):
         msg += added + removed
         return msg
 
-    def contacts_by_group(self, contact_actions_by_group, action):
+    def contacts_by_group(self, occurrences_by_group, action):
         contacts_by_group = ''
-        for contact_action in contact_actions_by_group:
-            contacts_by_group += '%s contacts %s %s\n' % (contact_action['cant_contacts'], action,
-                                                          contact_action['group__name'])
+        for occurrence in occurrences_by_group:
+            contacts_by_group += '%s contacts %s %s\n' % (occurrence['cant_contacts'], action,
+                                                          occurrence['alert_rules__group__name'])
         return contacts_by_group
 
     def minimum_and_maximum_values(self, tracker):

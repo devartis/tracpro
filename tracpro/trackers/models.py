@@ -159,10 +159,10 @@ class Tracker(models.Model):
     def today_snapshots_above_target(self):
         return self.today_related_snapshots().filter(contact_field_value__gt=self.target_contact_threshold)
 
-    def contact_actions_of_period(self, action):
+    def occurrences_of_period(self, action):
         start_of_period = datetime.datetime.today() - self.reporting_period
-        contact_actions = self.contact_actions.filter(timestamp__gt=start_of_period, action=action)
-        return contact_actions.values('group__name').annotate(cant_contacts=Count('group'))
+        occurrences = self.occurrences.filter(timestamp__gt=start_of_period, alert_rules__action=action)
+        return occurrences.values('alert_rules__group__name').annotate(cant_contacts=Count('alert_rules__group'))
 
     def set_org(self, org):
         self.org = org
@@ -233,13 +233,16 @@ class TrackerOccurrence(models.Model):
         ('add', _('Add')),
         ('remove', _('Remove'))
     )
-    contact = models.ForeignKey('contacts.Contact', verbose_name=_('Contact'), related_name='contact_actions')
+    contact = models.ForeignKey('contacts.Contact', verbose_name=_('Contact'), related_name='occurrences')
     alert_rules = models.ManyToManyField('trackers.AlertRule', verbose_name=_("Alert Rule"), related_name='occurrences')
-    tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='contact_actions')
+    tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='occurrences')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '%s %s to %s' % (self.action, self.contact, self.group)
+        an_alert_rule = self.alert_rules.all()[0]
+        preposition = 'to' if an_alert_rule.action == 'add' else 'from'
+        return '%s %s %s %s' % (an_alert_rule.action, self.contact, preposition, an_alert_rule.group)
+
 
 
 @python_2_unicode_compatible
