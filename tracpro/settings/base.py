@@ -335,6 +335,7 @@ GROUP_PERMISSIONS = {
         'profiles.profile.*',
         'trackers.tracker.*',
         'trackers.alert.*',
+        'trackers.trackeroccurrence.*',
     ),
     "Editors": (
         'baseline.baselineterm.*',
@@ -399,6 +400,7 @@ PERMISSIONS = {
     'profiles.profile': ('user_create', 'user_read', 'user_update', 'user_list'),
     'trackers.tracker': ('create', 'update', 'list'),
     'trackers.alert': ('create', 'update', 'list'),
+    'trackers.trackeroccurrence': ('list', ),
 }
 
 RTL_LANGUAGES = ['ps', 'fa']

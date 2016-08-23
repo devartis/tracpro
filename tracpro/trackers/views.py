@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from smartmin.views import SmartCRUDL, SmartListView, SmartCreateView, SmartUpdateView
 
 from .forms import GroupRuleFormSet, TrackerForm, AlertRuleFormSet, AlertForm
-from .models import Tracker, GroupRule, Alert
+from .models import Tracker, Alert, TrackerOccurrence
 
 
 class TrackerCRUDL(SmartCRUDL):
@@ -175,3 +175,12 @@ class AlertCRUDL(SmartCRUDL):
             for alert_rule in alert_formset.changed_objects:
                 alert_rule[0].save()
             return HttpResponseRedirect(self.get_success_url())
+
+
+class OccurrenceCRUDL(SmartCRUDL):
+    model = TrackerOccurrence
+    actions = ('list',)
+
+    class List(OrgPermsMixin, SmartListView):
+        paginate_by = 10
+        permission = 'trackers.trackeroccurrence_list'

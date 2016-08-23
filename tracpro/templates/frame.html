@@ -123,7 +123,7 @@
                   </ul>
                 </li>
               {% endif %}
-              {% if org_perms.orgs.org_home or org_perms.groups.group_list or org_perms.groups.region_list or org_perms.profiles.profile_user_list or org_perms.polls.poll_list or org_perms.msgs.message_list or org_perms.trackers.tracker_list or org_perms.trackers.alert_list %}
+              {% if org_perms.orgs.org_home or org_perms.groups.group_list or org_perms.groups.region_list or org_perms.profiles.profile_user_list or org_perms.polls.poll_list or org_perms.msgs.message_list or org_perms.trackers.tracker_list or org_perms.trackers.alert_list or org_perms.trackers.trackeroccurrence_list %}
                 <li class='dropdown'>
                   <a class='dropdown-toggle' data-toggle='dropdown' href='#'>
                     {% trans "Administration" %}
@@ -188,6 +188,13 @@
                       <li>
                         <a href='{% url 'trackers.alert_list' %}'>
                           {% trans "Alerts" %}
+                        </a>
+                      </li>
+                    {% endif %}
+                    {% if org_perms.trackers.trackeroccurrence_list %}
+                      <li>
+                        <a href='{% url 'trackers.trackeroccurrence_list' %}'>
+                          {% trans "Occurrence Log" %}
                         </a>
                       </li>
                     {% endif %}
