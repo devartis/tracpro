@@ -209,8 +209,8 @@ class GroupRule(models.Model):
             contact.groups.add(group)
         else:
             contact.groups.remove(group)
-        TrackerOccurrence.objects.get_or_create(action=self.action, contact=contact, group=group,
-                                                tracker=self.tracker)
+
+        AlertRule.create_ocurrences(action=self.action, group=group, contact=contact, tracker=self.tracker)
 
     def set_tracker(self, tracker):
         self.tracker = tracker
@@ -233,9 +233,8 @@ class TrackerOccurrence(models.Model):
         ('add', _('Add')),
         ('remove', _('Remove'))
     )
-    action = models.CharField(max_length=6, choices=ACTION_CHOICES)
     contact = models.ForeignKey('contacts.Contact', verbose_name=_('Contact'), related_name='contact_actions')
-    group = models.ForeignKey('groups.Group', verbose_name=_('Group'), related_name='contact_actions')
+    alert_rules = models.ManyToManyField('trackers.AlertRule', verbose_name=_("Alert Rule"), related_name='occurrences')
     tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='contact_actions')
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -271,8 +270,16 @@ class AlertRule(models.Model):
     last_executed = models.DateTimeField(null=True)
 
     def __str__(self):
-        return self.flow
+        return '%s - %s' % (self.flow.name, self.region.name)
 
     def set_alert(self, alert):
         self.alert = alert
         self.save()
+
+    @classmethod
+    def get_or_create_occurrence(cls, action, group, contact, tracker):
+        alert_rules = cls.objects.filter(action=action, group=group)
+        if alert_rules.exists():
+            occurrence = TrackerOccurrence.objects.create(contact=contact, tracker=tracker)
+            for alert_rule in alert_rules:
+                occurrence.alert_rules.add(alert_rule)

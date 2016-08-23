@@ -145,8 +145,7 @@ class TriggerFlowsFromAlerts(OrgTask):
     def org_task(self, org, **kwargs):
         now = datetime.datetime.now()
         for alert_rule in AlertRule.objects.filter(alert__org=org):
-            occurrences = TrackerOccurrence.objects.filter(tracker__org=org,
-                                                           action=alert_rule.action, group=alert_rule.group)
+            occurrences = alert_rule.occurrences.filter(tracker__org=org)
             if alert_rule.last_executed:
                 occurrences = occurrences.filter(timestamp__range=(alert_rule.last_executed, now))
 
