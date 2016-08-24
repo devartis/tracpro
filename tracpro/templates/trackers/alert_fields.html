@@ -11,6 +11,9 @@
     {% for alert_form in alert_formset %}
         <div class="rule-formset">
             {{ alert_form.as_p }}
+            {% if alert_form.instance.id and alert_form.instance.has_occurrences %}
+                <a href="{% url 'occurrences-by-alert' alert_form.instance.id %}">{% trans "View occurrences" %}</a>
+            {% endif %}
         </div>
     {% endfor %}
 

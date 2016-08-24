@@ -13,6 +13,10 @@
     width: 200px;
 }
 
+.rule-formset p:nth-child(3) select  {
+    width: 100px;
+}
+
 .rule-formset-add {
     float: right;
 }

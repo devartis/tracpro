@@ -244,7 +244,6 @@ class TrackerOccurrence(models.Model):
         return '%s %s %s %s' % (an_alert_rule.action, self.contact, preposition, an_alert_rule.group)
 
 
-
 @python_2_unicode_compatible
 class Alert(models.Model):
     org = models.ForeignKey('orgs.Org', verbose_name=_("Org"), related_name='alerts')
@@ -286,3 +285,6 @@ class AlertRule(models.Model):
             occurrence = TrackerOccurrence.objects.create(contact=contact, tracker=tracker)
             for alert_rule in alert_rules:
                 occurrence.alert_rules.add(alert_rule)
+
+    def has_occurrences(self):
+        return self.occurrences.all().exists()

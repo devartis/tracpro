@@ -184,3 +184,17 @@ class OccurrenceCRUDL(SmartCRUDL):
     class List(OrgPermsMixin, SmartListView):
         paginate_by = 10
         permission = 'trackers.trackeroccurrence_list'
+
+
+class AlertRuleOccurrences(OrgPermsMixin, SmartListView):
+    model = TrackerOccurrence
+    template_name = 'trackers/occurrence_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AlertRuleOccurrences, self).get_context_data(**kwargs)
+        context['title'] = 'Occurrences'
+        return context
+
+    def get_queryset(self):
+        query_set = super(AlertRuleOccurrences, self).get_queryset()
+        return query_set.filter(alert_rules__id=self.kwargs['alert_rule_id'])

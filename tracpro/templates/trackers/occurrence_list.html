@@ -1,0 +1,38 @@
+{% extends "smartmin/list.html" %}
+
+{% load i18n %}
+{% load smartmin %}
+
+{% block table %}
+    <table class="list-table {% get_list_class object_list %} table table-bordered table-striped" cellspacing="0">
+        <thead>
+        <tr>
+            {% for field in fields %}
+                <th class="header-{{ field }} {% if view|field_orderable:field %}header
+                    {% if field == order %}{% if order_asc %}headerSortUp{% else %}headerSortDown{% endif %}{% endif %}{% endif %}"
+                    id="header-{{ field }}">{% get_label field %}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for obj in object_list %}
+            <tr class="{% cycle 'row2' 'row1' %} {% if not obj.is_active and obj|is_smartobject %}inactive{% endif %}">
+                {% for field in fields %}
+                    <td class="value-{{ field }} {% get_class field obj %}">
+                        {% get_value obj field %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr class="empty_list">
+                {% for field in fields %}
+                    <td></td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+
+        {% block extra-rows %}
+        {% endblock extra-rows %}
+        </tbody>
+    </table>
+{% endblock table %}
