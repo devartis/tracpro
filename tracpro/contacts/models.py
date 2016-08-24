@@ -198,19 +198,20 @@ class Contact(models.Model):
 
         # Use the first Temba group that matches one of the org's Groups.
         group = _get_first(Group, temba_contact.groups)
-        groups = [Group.objects.get(uuid=group_uuid) for group_uuid in temba_contact.groups]
-        return {
+        kwargs = {
             'org': org,
             'name': temba_contact.name or "",
             'urn': temba_contact.urns[0],
             'region': region,
             'group': group,
-            'groups': groups,
             'language': temba_contact.language,
             'uuid': temba_contact.uuid,
             'temba_modified_on': temba_contact.modified_on,
             '_data_field_values': temba_contact.fields,  # managed by post-save signal
         }
+        if cls.objects.filter(org=org, uuid=temba_contact.uuid).exists():
+            kwargs['groups'] = [Group.objects.get(uuid=group_uuid) for group_uuid in temba_contact.groups]
+        return kwargs
 
     def push(self, change_type):
         push_contact_change.delay(self.pk, change_type)
