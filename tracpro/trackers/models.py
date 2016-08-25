@@ -95,7 +95,7 @@ class Tracker(models.Model):
     def apply_group_rules(self):
         modified_contacts = []
         for group_rule in self.group_rules.all():
-            snapshots = self.related_snapshots().filter(
+            snapshots = self.today_related_snapshots().filter(
                 Q(**{'contact_field_value__' + group_rule.condition: group_rule.get_threshold_value()}))
 
             for snapshot in snapshots:
@@ -210,7 +210,7 @@ class GroupRule(models.Model):
         else:
             contact.groups.remove(group)
 
-        AlertRule.create_ocurrences(action=self.action, group=group, contact=contact, tracker=self.tracker)
+        AlertRule.create_occurrences(action=self.action, group=group, contact=contact, tracker=self.tracker)
 
     def set_tracker(self, tracker):
         self.tracker = tracker
@@ -279,7 +279,7 @@ class AlertRule(models.Model):
         self.save()
 
     @classmethod
-    def get_or_create_occurrence(cls, action, group, contact, tracker):
+    def create_occurrences(cls, action, group, contact, tracker):
         alert_rules = cls.objects.filter(action=action, group=group)
         if alert_rules.exists():
             occurrence = TrackerOccurrence.objects.create(contact=contact, tracker=tracker)

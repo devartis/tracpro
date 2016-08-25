@@ -21,12 +21,15 @@ class CreateSnapshots(OrgTask):
 
 class ApplyGroupRules(OrgTask):
     def org_task(self, org, **kwargs):
+        temba_client = org.get_temba_client()
         Contact.objects.sync(org)
 
         for tracker in org.trackers.all():
             updated_contacts = tracker.apply_group_rules()
             for contact in updated_contacts:
-                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
+                temba_contact = contact.as_temba()
+                temba_client.update_contact(uuid=temba_contact.uuid, name=temba_contact.name, urns=temba_contact.urns,
+                                            fields=contact.fields(), groups=temba_contact.groups)
 
 
 class SendAlertThresholdEmails(OrgTask):
@@ -48,7 +51,7 @@ class SendAlertThresholdEmails(OrgTask):
                 msg = 'The value %s is greater than maximum contact threshold' % snapshot.contact_field_value
                 self.sent_alert_threshold_email(msg, tracker.contact_threshold_emails)
 
-            total_group_sum = self.total_group_sum()
+            total_group_sum = tracker.total_group_sum()
             if tracker.under_group_minimum():
                 msg = 'The sum of the individual values %s is less than minimum group threshold' % total_group_sum
                 self.sent_alert_threshold_email(msg, tracker.group_threshold_emails)
@@ -60,12 +63,16 @@ class SendAlertThresholdEmails(OrgTask):
 
 class ReportEmails(OrgTask):
     def org_task(self, org, **kwargs):
+        temba_client = org.get_temba_client()
+
         for tracker in org.trackers.filter(reporting_period=kwargs.get('period')):
             self.send_report_emails(tracker)
 
             updated_contacts = tracker.reset_contact_fields()
             for contact in updated_contacts:
-                sync_push_contact(org, contact, ChangeType.updated, contact.as_temba().groups)
+                temba_contact = contact.as_temba()
+                temba_client.update_contact(uuid=temba_contact.uuid, name=temba_contact.name, urns=temba_contact.urns,
+                                            fields=contact.fields(), groups=temba_contact.groups)
 
     def send_report_emails(self, tracker):
         msg = self.report_email_for(tracker, self.minimum_and_maximum_values(tracker))

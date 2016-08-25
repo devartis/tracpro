@@ -139,7 +139,7 @@ class Contact(models.Model):
         temba_contact.name = self.name
         temba_contact.urns = [self.urn]
         temba_contact.fields = fields
-        temba_contact.groups = list(self.groups.all())
+        temba_contact.groups = list(self.groups.all().values_list('uuid', flat=True))
         temba_contact.language = self.language
         temba_contact.uuid = self.uuid
 
@@ -242,6 +242,9 @@ class Contact(models.Model):
             self.push(ChangeType.created)
 
         return contact
+
+    def fields(self):
+        return {f.field.key: f.value for f in self.contactfield_set.all()}
 
 
 class DataFieldQuerySet(models.QuerySet):
