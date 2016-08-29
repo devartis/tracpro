@@ -57,22 +57,22 @@ class Tracker(models.Model):
 
         errors = {}
         if self.minimum_group_threshold is not None and (self.minimum_group_threshold >= self.target_group_threshold):
-            errors[
-                'minimum_group_threshold'] = "The Minimum group threshold should be less than the Target group threshold"
+            errors['minimum_group_threshold'] = \
+                "The Minimum group threshold should be less than the Target group threshold"
 
         if self.maximum_group_threshold is not None and (self.maximum_group_threshold <= self.target_group_threshold):
-            errors[
-                'maximum_group_threshold'] = "The Maximum group threshold should be greater than the Target group threshold"
+            errors['maximum_group_threshold'] = \
+                "The Maximum group threshold should be greater than the Target group threshold"
 
         if self.minimum_contact_threshold is not None and \
                 (self.minimum_contact_threshold >= self.target_contact_threshold):
-            errors[
-                'minimum_contact_threshold'] = "The Minimum contact threshold should be less than the Target contact threshold"
+            errors['minimum_contact_threshold'] = \
+                "The Minimum contact threshold should be less than the Target contact threshold"
 
         if self.maximum_contact_threshold is not None and \
                 (self.maximum_contact_threshold <= self.target_contact_threshold):
-            errors[
-                'maximum_contact_threshold'] = "The Maximum contact threshold should be greater than the Target contact threshold"
+            errors['maximum_contact_threshold'] = \
+                "The Maximum contact threshold should be greater than the Target contact threshold"
         raise ValidationError(errors)
 
     def __str__(self):
