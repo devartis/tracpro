@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.mail import send_mail
 from temba_client.base import TembaAPIError
@@ -10,6 +11,8 @@ from tracpro.contacts.models import Contact
 from tracpro.groups.models import Group
 from tracpro.orgs_ext.tasks import OrgTask
 from tracpro.trackers.models import AlertRule
+
+logger = get_task_logger(__name__)
 
 
 class CreateSnapshots(OrgTask):
@@ -165,6 +168,5 @@ class TriggerFlowsFromAlerts(OrgTask):
                                              contacts=contacts, restart_participants=False)
                     alert_rule.last_executed = now
                     alert_rule.save()
-                except TembaAPIError:
-                    # TODO: log error
-                    continue
+                except TembaAPIError as e:
+                    logger.debug(e)
