@@ -91,7 +91,7 @@ class Tracker(models.Model):
                                                timestamp__day=today.day)
 
     def related_contact_fields(self):
-        return ContactField.objects.filter(field=self.contact_field, contact_field__contact__region=self.region)
+        return ContactField.objects.filter(field=self.contact_field, contact__region=self.region)
 
     def get_str_reporting_period(self):
         return dict(Tracker.REPORTING_PERIOD_CHOICES)[self.reporting_period]
@@ -123,10 +123,10 @@ class Tracker(models.Model):
         return set(updated_contacts)
 
     def snapshots_below_or_at_minimum(self):
-        return self.related_snapshots().filter(contact_field_value__lte=self.minimum_contact_threshold)
+        return self.today_related_snapshots().filter(contact_field_value__lte=self.minimum_contact_threshold)
 
     def snapshots_over_or_at_maximum(self):
-        return self.related_snapshots().filter(contact_field_value__gte=self.maximum_contact_threshold)
+        return self.today_related_snapshots().filter(contact_field_value__gte=self.maximum_contact_threshold)
 
     def under_group_minimum(self):
         total_group_sum = self.total_group_sum()
@@ -138,7 +138,7 @@ class Tracker(models.Model):
 
     def total_group_sum(self):
         total_group_sum = 0
-        for value in self.related_snapshots().values_list('contact_field_value', flat=True):
+        for value in self.today_related_snapshots().values_list('contact_field_value', flat=True):
             total_group_sum += int(value)
         return total_group_sum
 

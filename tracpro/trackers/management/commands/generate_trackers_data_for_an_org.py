@@ -8,7 +8,7 @@ from tracpro.trackers.data_generator import DataGenerator
 
 class Command(BaseCommand):
     args = "org_id"
-    help = 'Generates data for Tracker Testing org'
+    help = 'Generates data for trackers app'
 
     def handle(self, *args, **options):
         org_id = int(args[0]) if args else None
@@ -23,4 +23,4 @@ class Command(BaseCommand):
         generator = DataGenerator(org=org)
         generator.generate_data()
 
-        self.stdout.write("Contacts, trackers and alert have been created")
+        self.stdout.write("Contacts, trackers and alerts have been created")
