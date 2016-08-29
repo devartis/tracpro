@@ -166,4 +166,5 @@ class TriggerFlowsFromAlerts(OrgTask):
                     alert_rule.last_executed = now
                     alert_rule.save()
                 except TembaAPIError:
+                    # TODO: log error
                     continue
