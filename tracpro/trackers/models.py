@@ -82,9 +82,8 @@ class Tracker(models.Model):
         return self.contact_field.label
 
     def related_snapshots(self):
-        # TODO: change __in
         return Snapshot.objects.filter(contact_field__field=self.contact_field,
-                                       contact_field__contact__in=self.region.contacts.all())
+                                       contact_field__contact__region=self.region)
 
     def today_related_snapshots(self):
         today = datetime.date.today()
@@ -92,7 +91,7 @@ class Tracker(models.Model):
                                                timestamp__day=today.day)
 
     def related_contact_fields(self):
-        return ContactField.objects.filter(field=self.contact_field, contact__in=self.region.contacts.all())
+        return ContactField.objects.filter(field=self.contact_field, contact_field__contact__region=self.region)
 
     def get_str_reporting_period(self):
         return dict(Tracker.REPORTING_PERIOD_CHOICES)[self.reporting_period]
