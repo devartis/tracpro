@@ -2,15 +2,14 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 
-from dash.utils.sync import ChangeType, sync_push_contact
 from django.conf import settings
 from django.core.mail import send_mail
 from temba_client.base import TembaAPIError
 
 from tracpro.contacts.models import Contact
+from tracpro.groups.models import Group
 from tracpro.orgs_ext.tasks import OrgTask
 from tracpro.trackers.models import AlertRule
-from tracpro.trackers.models import TrackerOccurrence
 
 
 class CreateSnapshots(OrgTask):
@@ -157,7 +156,8 @@ class TriggerFlowsFromAlerts(OrgTask):
                 occurrences = occurrences.filter(timestamp__range=(alert_rule.last_executed, now))
 
             if occurrences.exists():
-                contacts = list(alert_rule.region.contacts.all().values_list('uuid', flat=True))
+                contacts = list(Group.objects.get(
+                    uuid=alert_rule.region.uuid).all_contacts.all().values_list('uuid', flat=True))
                 temba_client = alert_rule.alert.org.get_temba_client()
                 # TODO: check if "restart_participants" should be True
                 try:

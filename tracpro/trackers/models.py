@@ -11,6 +11,13 @@ from django.utils.translation import ugettext_lazy as _
 from tracpro.contacts.models import ContactField
 from tracpro.groups.models import Group
 
+ADD = 'add'
+REMOVE = 'remove'
+ACTION_CHOICES = (
+    (ADD, _('Add')),
+    (REMOVE, _('Remove'))
+)
+
 
 @python_2_unicode_compatible
 class Tracker(models.Model):
@@ -59,11 +66,13 @@ class Tracker(models.Model):
 
         if self.minimum_contact_threshold is not None and \
                 (self.minimum_contact_threshold >= self.target_contact_threshold):
-            errors['minimum_contact_threshold'] = "The Minimum contact threshold should be less than the Target contact threshold"
+            errors[
+                'minimum_contact_threshold'] = "The Minimum contact threshold should be less than the Target contact threshold"
 
         if self.maximum_contact_threshold is not None and \
                 (self.maximum_contact_threshold <= self.target_contact_threshold):
-            errors['maximum_contact_threshold'] = "The Maximum contact threshold should be greater than the Target contact threshold"
+            errors[
+                'maximum_contact_threshold'] = "The Maximum contact threshold should be greater than the Target contact threshold"
         raise ValidationError(errors)
 
     def __str__(self):
@@ -171,19 +180,22 @@ class Tracker(models.Model):
 
 @python_2_unicode_compatible
 class GroupRule(models.Model):
-    ACTION_CHOICES = (
-        ('add', _('Add')),
-        ('remove', _('Remove'))
-    )
+    ACTION_CHOICES = ACTION_CHOICES
+    GREATER = 'gt'
+    LESS = 'lt'
     CONDITION_CHOICES = (
-        ('gt', _('Greater')),
-        ('lt', _('Less'))
+        (GREATER, _('Greater')),
+        (LESS, _('Less'))
     )
+    GROUP_MAXIMUM = 'GMax'
+    GROUP_MINIMUM = 'GMin'
+    CONTACT_MAXIMUM = 'CMax'
+    CONTACT_MINIMUM = 'CMin'
     THRESHOLD_CHOICES = (
-        ('GMax', _('Group Maximum')),
-        ('GMin', _('Group Minimum')),
-        ('CMax', _('Contact Maximum')),
-        ('CMin', _('Contact Minimum'))
+        (GROUP_MAXIMUM, _('Group Maximum')),
+        (GROUP_MINIMUM, _('Group Minimum')),
+        (CONTACT_MAXIMUM, _('Contact Maximum')),
+        (CONTACT_MINIMUM, _('Contact Minimum'))
     )
     action = models.CharField(max_length=6, choices=ACTION_CHOICES)
     region = models.ForeignKey('groups.Region', verbose_name=_("Region"), related_name='group_rules')
@@ -229,10 +241,8 @@ class Snapshot(models.Model):
 
 @python_2_unicode_compatible
 class TrackerOccurrence(models.Model):
-    ACTION_CHOICES = (
-        ('add', _('Add')),
-        ('remove', _('Remove'))
-    )
+    ACTION_CHOICES = ACTION_CHOICES
+
     contact = models.ForeignKey('contacts.Contact', verbose_name=_('Contact'), related_name='occurrences')
     alert_rules = models.ManyToManyField('trackers.AlertRule', verbose_name=_("Alert Rule"), related_name='occurrences')
     tracker = models.ForeignKey(Tracker, verbose_name=_("Tracker"), related_name='occurrences')
@@ -259,10 +269,7 @@ class Alert(models.Model):
 
 @python_2_unicode_compatible
 class AlertRule(models.Model):
-    ACTION_CHOICES = (
-        ('add', _('Add')),
-        ('remove', _('Remove'))
-    )
+    ACTION_CHOICES = ACTION_CHOICES
 
     alert = models.ForeignKey(Alert, related_name='alert_rules')
     flow = models.ForeignKey('polls.Poll', related_name='alert_rules')
