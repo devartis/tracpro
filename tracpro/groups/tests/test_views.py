@@ -532,7 +532,7 @@ class TestGroupList(TracProDataTest):
         self.login(self.admin)
         response = self.url_get('unicef', reverse(self.url_name))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['object_list']), 3)
+        self.assertEqual(len(response.context['object_list']), 4)
 
 
 class TestGroupMostActive(TracProDataTest):

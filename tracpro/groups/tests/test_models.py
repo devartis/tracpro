@@ -209,7 +209,7 @@ class TestGroup(TracProDataTest):
         self.assertEqual(group.uuid, 'G-101')
 
     def test_get_all(self):
-        self.assertEqual(len(models.Group.get_all(self.unicef)), 3)
+        self.assertEqual(len(models.Group.get_all(self.unicef)), 4)
         self.assertEqual(len(models.Group.get_all(self.nyaruka)), 1)
 
 

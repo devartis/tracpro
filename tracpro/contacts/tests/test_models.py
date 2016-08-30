@@ -99,7 +99,7 @@ class ContactTest(TracProDataTest):
             'name': "Jan",
             'urn': 'tel:123',
             'region': self.region1,
-            'group': self.group3,
+            'group': self.group5,
             'language': 'eng',
             'temba_modified_on': modified_date,
             '_data_field_values': {
@@ -115,7 +115,7 @@ class ContactTest(TracProDataTest):
         self.assertEqual(temba_contact.name, "Ann")
         self.assertEqual(temba_contact.urns, ['tel:1234'])
         self.assertEqual(temba_contact.fields, {})
-        self.assertEqual(temba_contact.groups, ['G-001', 'G-005'])
+        self.assertEqual(temba_contact.groups, ['G-005', 'G-001'])
         self.assertEqual(temba_contact.uuid, 'C-001')
 
     def test_by_org(self):
