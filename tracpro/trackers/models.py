@@ -76,10 +76,10 @@ class Tracker(models.Model):
         raise ValidationError(errors)
 
     def __str__(self):
-        return self.contact_field.label
+        return "%s - %s" % (self.region, self.contact_field.label)
 
     def __unicode__(self):
-        return self.contact_field.label
+        return "%s - %s" % (self.region, self.contact_field.label)
 
     def related_snapshots(self):
         return Snapshot.objects.filter(contact_field__field=self.contact_field,
@@ -286,7 +286,7 @@ class AlertRule(models.Model):
 
     @classmethod
     def create_occurrences(cls, action, group, contact, tracker):
-        alert_rules = cls.objects.filter(action=action, group=group)
+        alert_rules = cls.objects.filter(alert__org=tracker.org, action=action, group=group)
         if alert_rules.exists():
             occurrence = TrackerOccurrence.objects.create(contact=contact, tracker=tracker)
             for alert_rule in alert_rules:

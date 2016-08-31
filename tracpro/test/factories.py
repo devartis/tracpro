@@ -6,3 +6,4 @@ from tracpro.groups.tests.factories import *  # noqa
 from tracpro.orgs_ext.tests.factories import *  # noqa
 from tracpro.polls.tests.factories import *  # noqa
 from tracpro.profiles.tests.factories import *  # noqa
+from tracpro.trackers.tests.factories import *  # noqa
