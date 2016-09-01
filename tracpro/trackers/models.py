@@ -38,15 +38,21 @@ class Tracker(models.Model):
     region = models.ForeignKey('groups.Region', verbose_name=_("Region"), related_name='trackers')
     contact_field = models.ForeignKey('contacts.DataField')
     reporting_period = models.DurationField(max_length=2, choices=REPORTING_PERIOD_CHOICES)
-    minimum_group_threshold = models.IntegerField(null=True, blank=True)
-    target_group_threshold = models.IntegerField()
-    maximum_group_threshold = models.IntegerField(null=True, blank=True)
-    group_threshold_emails = models.TextField()
-    minimum_contact_threshold = models.IntegerField(null=True, blank=True)
-    target_contact_threshold = models.IntegerField()
-    maximum_contact_threshold = models.IntegerField(null=True, blank=True)
-    contact_threshold_emails = models.TextField()
-    emails = models.TextField()
+    minimum_group_threshold = models.IntegerField(
+        null=True, blank=True, help_text=_("Minimum threshold for reporting period (sum for group)"))
+    target_group_threshold = models.IntegerField(
+        help_text=_("Target threshold for reporting period (sum for group)"))
+    maximum_group_threshold = models.IntegerField(
+        null=True, blank=True, help_text=_("Maximum threshold for reporting period (sum for group)"))
+    group_threshold_emails = models.TextField(help_text=_("Emails to send individual contact thresholds"))
+    minimum_contact_threshold = models.IntegerField(
+        null=True, blank=True, help_text=_("Minimum threshold for reporting period (each contact)"))
+    target_contact_threshold = models.IntegerField(
+        help_text=_("Target threshold for reporting period (each contact)"))
+    maximum_contact_threshold = models.IntegerField(
+        null=True, blank=True, help_text=_("Maximum threshold for reporting period (each contact)"))
+    contact_threshold_emails = models.TextField(help_text=_("Emails to send group sum thresholds"))
+    emails = models.TextField(help_text=_("Emails to send the report"))
 
     def clean_fields(self, exclude=None):
         super(Tracker, self).clean_fields(exclude)
