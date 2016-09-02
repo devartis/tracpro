@@ -15,6 +15,11 @@ class TrackerCRUDL(SmartCRUDL):
 
     class List(OrgPermsMixin, SmartListView):
         permission = 'trackers.tracker_list'
+        fields = ('region', 'contact_field', 'reporting_period')
+
+        def get_queryset(self):
+            query_set = super(TrackerCRUDL.List, self).get_queryset()
+            return query_set.filter(org=self.request.org)
 
     class Update(OrgPermsMixin, SmartUpdateView):
         title = _("Tracker configuration")
@@ -100,6 +105,11 @@ class AlertCRUDL(SmartCRUDL):
 
     class List(OrgPermsMixin, SmartListView):
         permission = 'trackers.alert_list'
+        fields = ('name',)
+
+        def get_queryset(self):
+            query_set = super(AlertCRUDL.List, self).get_queryset()
+            return query_set.filter(org=self.request.org)
 
     class Create(OrgPermsMixin, SmartCreateView):
         title = _("Alert configuration")
@@ -184,11 +194,17 @@ class OccurrenceCRUDL(SmartCRUDL):
     class List(OrgPermsMixin, SmartListView):
         paginate_by = 10
         permission = 'trackers.trackeroccurrence_list'
+        fields = ('contact', 'timestamp')
+
+        def get_queryset(self):
+            query_set = super(OccurrenceCRUDL.List, self).get_queryset()
+            return query_set.filter(tracker__org=self.request.org)
 
 
 class AlertRuleOccurrences(OrgPermsMixin, SmartListView):
     model = TrackerOccurrence
     template_name = 'trackers/occurrence_list.html'
+    fields = ('contact', 'timestamp')
 
     def get_context_data(self, **kwargs):
         context = super(AlertRuleOccurrences, self).get_context_data(**kwargs)
