@@ -13,6 +13,9 @@ Concepts
 * `Reporter groups` are types of contacts, such as head teachers, or grade 5 teachers. They must be configured as contact groups in RapidPro first.
 * `Recent Indicators` allow users to compare baseline poll results to follow up poll results over time. For instance, if a poll was sent out to gather enrollment numbers at the start of the term, that could be selected as the baseline poll, and a follow up poll could be the poll sent out over the term asking for attendance numbers. Users may also spoof poll data to create sample results to chart on Recent Indicators.
 * `Inbox Messages` allow users to view and send unsolicited messages, that is, messages outside of a flow, to contacts.
+* `Trackers` allow users to alter contact group membership based on contact field values through group rules.
+* `Group Rules` are rules that users can add to add or remove contacts from arbitrary groups based on the configured thresholds in the related tracker.
+* `Alerts` are triggered based on changes to group membership. Users can choose a flow that will be executed when configured group membership change events.
 
 Features
 --------------------
