@@ -1,6 +1,7 @@
 .rule-formset {
     border: solid 1px black;
     padding: 10px;
+    padding-bottom: 25px;
     margin-bottom: 10px;
 }
 
@@ -9,8 +10,13 @@
     margin-right: 10px;
 }
 
+.rule-formset a {
+    top: 10px;
+}
+
 .rule-formset select {
     width: 200px;
+    display: inline;
 }
 
 .rule-formset p:nth-child(3) select  {
