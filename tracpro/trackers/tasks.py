@@ -5,7 +5,6 @@ import datetime
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.mail import send_mail
-from temba_client.base import TembaAPIError
 
 from tracpro.contacts.models import Contact
 from tracpro.groups.models import Group
@@ -162,11 +161,8 @@ class TriggerFlowsFromAlerts(OrgTask):
                 contacts = list(Group.objects.get(
                     uuid=alert_rule.region.uuid).all_contacts.all().values_list('uuid', flat=True))
                 temba_client = alert_rule.alert.org.get_temba_client()
-                # TODO: check if "restart_participants" should be True
-                try:
-                    temba_client.create_runs(flow=alert_rule.flow.flow_uuid,
-                                             contacts=contacts, restart_participants=False)
-                    alert_rule.last_executed = now
-                    alert_rule.save()
-                except TembaAPIError as e:
-                    logger.debug(e)
+
+                temba_client.create_runs(flow=alert_rule.flow.flow_uuid,
+                                         contacts=contacts, restart_participants=True)
+                alert_rule.last_executed = now
+                alert_rule.save()
